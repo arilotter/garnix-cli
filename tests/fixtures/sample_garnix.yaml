@@ -1,0 +1,16 @@
+builds:
+  - include:
+      - "packages.*.*"
+    exclude:
+      - "packages.*.broken-package"
+    branch: main
+  - include:
+      - "checks.*.*"
+      - "devShells.*"
+    exclude: []
+    # No branch restriction - applies to all branches
+  - include:
+      - "packages.*.experimental"
+    exclude: []
+    branch: dev
+incrementalizeBuilds: false
