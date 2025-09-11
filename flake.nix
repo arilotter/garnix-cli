@@ -37,6 +37,11 @@
           ];
         };
 
+        rustPlatform = pkgs.makeRustPlatform {
+          cargo = rustToolchain;
+          rustc = rustToolchain;
+        };
+
         treefmtEval = treefmt-nix.lib.evalModule pkgs {
           projectRootFile = "flake.nix";
           programs = {
@@ -77,7 +82,7 @@
           };
         };
 
-        garnix-cli = pkgs.rustPlatform.buildRustPackage garnix-cli-config;
+        garnix-cli = rustPlatform.buildRustPackage garnix-cli-config;
 
       in
       {
@@ -97,6 +102,7 @@
 
               # dev tools
               cargo-watch
+              rustToolchain
               rust-analyzer
             ]
             ++ (builtins.attrValues treefmtEval.config.build.programs);
@@ -112,7 +118,7 @@
         checks = {
           garnix-cli = garnix-cli;
 
-          cargo-test = pkgs.rustPlatform.buildRustPackage {
+          cargo-test = rustPlatform.buildRustPackage {
             pname = "garnix-cli-tests";
             inherit (garnix-cli-config)
               version

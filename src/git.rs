@@ -1,8 +1,9 @@
 use crate::error::{GarnixError, Result};
 use git2::Repository;
+use std::path::PathBuf;
 
 pub fn get_current_branch() -> Result<String> {
-    let repo = Repository::open(".")?;
+    let repo = Repository::discover(std::env::current_dir()?)?;
 
     let head_ref = repo.head();
 
@@ -47,6 +48,13 @@ pub fn get_current_branch() -> Result<String> {
 
 pub fn is_git_repository() -> bool {
     Repository::open(".").is_ok()
+}
+
+pub fn get_git_root() -> Result<PathBuf> {
+    let repo = Repository::discover(std::env::current_dir()?)?;
+    repo.workdir()
+        .map(|p| p.to_path_buf())
+        .ok_or(GarnixError::NotInGitRepo)
 }
 
 pub fn get_branch_or_override(override_branch: Option<String>) -> Result<String> {

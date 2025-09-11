@@ -13,12 +13,11 @@ impl AttributeMatcher {
 
     pub fn get_matching_attributes(
         &self,
-        config: &GarnixConfig,
+        config: &Option<GarnixConfig>,
         available_attrs: &[String],
     ) -> Result<Vec<String>> {
-        let config = match config {
-            GarnixConfig::Null => return Ok(Vec::new()),
-            GarnixConfig::Config(config) => config,
+        let Some(config) = config else {
+            return Ok(Vec::new());
         };
 
         let mut matched_attrs = HashSet::new();

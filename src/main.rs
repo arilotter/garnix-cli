@@ -24,15 +24,16 @@ async fn run_build(as_branch: Option<String>, dry_run: bool) -> Result<()> {
     let current_branch = git::get_branch_or_override(as_branch)?;
     cli::print_success(&format!("running builds for branch: {}", current_branch));
 
-    let config = config::load_config_from_current_dir()?;
+    let git_root = git::get_git_root()?;
+    let config = config::load_config_from_git_root(&git_root)?;
 
-    let config_info = match &config {
-        config::GarnixConfig::Null => "no config found, using defaults",
-        config::GarnixConfig::Config(_) => "config loaded from garnix.yaml",
-    };
-    cli::print_success(config_info);
+    cli::print_success(if config.is_some() {
+        "config loaded from garnix.yaml"
+    } else {
+        "no garnix config found, using defaults"
+    });
 
-    let flake = NixFlake::from_current_dir()?;
+    let flake = NixFlake::from_git_root(&git_root)?;
     let available_attrs = flake.discover_attributes().await?;
     let matcher = AttributeMatcher::new(current_branch);
     let matching_attrs = matcher.get_matching_attributes(&config, &available_attrs)?;

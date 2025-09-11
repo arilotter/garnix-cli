@@ -1,14 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum GarnixConfig {
-    Null,
-    Config(Config),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Config {
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct GarnixConfig {
     #[serde(default)]
     pub builds: BuildsConfig,
 
@@ -19,14 +12,14 @@ pub struct Config {
     pub servers: Vec<ServerConfig>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
 pub enum BuildsConfig {
     Single(BuildEntry),
     Multiple(Vec<BuildEntry>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct BuildEntry {
     #[serde(default = "default_includes")]
     pub include: Vec<String>,
@@ -37,20 +30,20 @@ pub struct BuildEntry {
     pub branch: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
 pub enum IncrementalizeBuilds {
     Boolean(bool),
     ExcludesBranches { exclude_branches: Vec<String> },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ServerConfig {
     pub configuration: String,
     pub deployment: DeploymentConfig,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 pub enum DeploymentConfig {
     #[serde(rename = "on-pull-request")]
@@ -58,22 +51,6 @@ pub enum DeploymentConfig {
 
     #[serde(rename = "on-branch")]
     OnBranch { branch: String },
-}
-
-impl Default for GarnixConfig {
-    fn default() -> Self {
-        GarnixConfig::Config(Config::default())
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            builds: BuildsConfig::default(),
-            incrementalize_builds: IncrementalizeBuilds::Boolean(false),
-            servers: Vec::new(),
-        }
-    }
 }
 
 impl Default for BuildsConfig {

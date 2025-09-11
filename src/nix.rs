@@ -1,6 +1,6 @@
 use crate::error::{GarnixError, Result};
 use serde_json::Value;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Stdio;
 use tokio::process::Command;
 
@@ -21,24 +21,8 @@ impl NixFlake {
         })
     }
 
-    pub fn from_current_dir() -> Result<Self> {
-        let flake_path = Self::find_flake_root(std::env::current_dir()?)?;
-        Self::new(flake_path)
-    }
-
-    fn find_flake_root<P: AsRef<Path>>(start_path: P) -> Result<PathBuf> {
-        let mut current = start_path.as_ref().to_path_buf();
-
-        loop {
-            if current.join("flake.nix").exists() {
-                return Ok(current);
-            }
-
-            match current.parent() {
-                Some(parent) => current = parent.to_path_buf(),
-                None => return Err(GarnixError::NoFlakeFound),
-            }
-        }
+    pub fn from_git_root<P: AsRef<Path>>(git_root: P) -> Result<Self> {
+        Self::new(git_root)
     }
 
     pub async fn discover_attributes(&self) -> Result<Vec<String>> {
@@ -99,16 +83,17 @@ impl NixFlake {
                 let mut new_path = path.clone();
                 new_path.push(key.clone());
 
-                if path.len() == 1 && !key.is_empty() && key != current_system {
-                    if key.contains("-")
-                        && (key.starts_with("x86_64-") || key.starts_with("aarch64-"))
-                    {
-                        continue;
-                    }
+                if path.len() == 1
+                    && !key.is_empty()
+                    && key != current_system
+                    && key.contains("-")
+                    && (key.starts_with("x86_64-") || key.starts_with("aarch64-"))
+                {
+                    continue;
                 }
 
                 let is_special_buildable = matches!(
-                    path.get(0).map(|p| p.as_str()),
+                    path.first().map(|p| p.as_str()),
                     Some("darwinConfigurations" | "homeConfigurations")
                 );
 
@@ -126,10 +111,7 @@ impl NixFlake {
             Value::Object(map) => match map.get("type").map(|t| t.as_str()) {
                 Some(Some("derivation" | "nixos-configuration")) => true,
                 Some(Some(_) | None) => false,
-                None => map.values().all(|v| match v {
-                    Value::Object(_) => false,
-                    _ => true,
-                }),
+                None => map.values().all(|v| !matches!(v, Value::Object(_))),
             },
             _ => false,
         }
@@ -200,7 +182,6 @@ fn transform_attribute_for_build(attr: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
 
     #[test]
     fn test_transform_attribute_for_build() {
