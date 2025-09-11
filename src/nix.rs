@@ -1,6 +1,6 @@
 use crate::error::{GarnixError, Result};
 use serde_json::Value;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use tokio::process::Command;
 
@@ -22,7 +22,23 @@ impl NixFlake {
     }
 
     pub fn from_current_dir() -> Result<Self> {
-        Self::new(".")
+        let flake_path = Self::find_flake_root(std::env::current_dir()?)?;
+        Self::new(flake_path)
+    }
+
+    fn find_flake_root<P: AsRef<Path>>(start_path: P) -> Result<PathBuf> {
+        let mut current = start_path.as_ref().to_path_buf();
+
+        loop {
+            if current.join("flake.nix").exists() {
+                return Ok(current);
+            }
+
+            match current.parent() {
+                Some(parent) => current = parent.to_path_buf(),
+                None => return Err(GarnixError::NoFlakeFound),
+            }
+        }
     }
 
     pub async fn discover_attributes(&self) -> Result<Vec<String>> {
