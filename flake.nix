@@ -45,7 +45,7 @@
           };
         };
 
-        garnix-cli = pkgs.rustPlatform.buildRustPackage {
+        garnix-cli-config = {
           pname = "garnix-cli";
           version = "0.1.0";
           src = ./.;
@@ -76,6 +76,8 @@
             maintainers = [ ];
           };
         };
+
+        garnix-cli = pkgs.rustPlatform.buildRustPackage garnix-cli-config;
 
       in
       {
@@ -112,7 +114,7 @@
 
           cargo-test = pkgs.rustPlatform.buildRustPackage {
             pname = "garnix-cli-tests";
-            inherit (garnix-cli)
+            inherit (garnix-cli-config)
               version
               src
               cargoLock
