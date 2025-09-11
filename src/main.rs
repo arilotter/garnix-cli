@@ -1,10 +1,10 @@
 use clap::Parser;
 use garnix_cli::{
+    Result,
     cli::{self, Cli, Commands},
     config, git,
     matcher::AttributeMatcher,
     nix::NixFlake,
-    Result,
 };
 
 #[tokio::main]

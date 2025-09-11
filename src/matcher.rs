@@ -115,44 +115,64 @@ mod tests {
         let matcher = AttributeMatcher::new("main".to_string());
 
         // Test exact matches
-        assert!(matcher
-            .matches_pattern("packages.x86_64-linux.hello", "packages.x86_64-linux.hello")
-            .unwrap());
+        assert!(
+            matcher
+                .matches_pattern("packages.x86_64-linux.hello", "packages.x86_64-linux.hello")
+                .unwrap()
+        );
 
         // Test wildcard matches
-        assert!(matcher
-            .matches_pattern("packages.*.*", "packages.x86_64-linux.hello")
-            .unwrap());
-        assert!(matcher
-            .matches_pattern("*.x86_64-linux.*", "packages.x86_64-linux.hello")
-            .unwrap());
-        assert!(matcher
-            .matches_pattern("packages.x86_64-linux.*", "packages.x86_64-linux.hello")
-            .unwrap());
+        assert!(
+            matcher
+                .matches_pattern("packages.*.*", "packages.x86_64-linux.hello")
+                .unwrap()
+        );
+        assert!(
+            matcher
+                .matches_pattern("*.x86_64-linux.*", "packages.x86_64-linux.hello")
+                .unwrap()
+        );
+        assert!(
+            matcher
+                .matches_pattern("packages.x86_64-linux.*", "packages.x86_64-linux.hello")
+                .unwrap()
+        );
 
         // Test non-matches
-        assert!(!matcher
-            .matches_pattern("packages.aarch64-linux.*", "packages.x86_64-linux.hello")
-            .unwrap());
-        assert!(!matcher
-            .matches_pattern("checks.*.*", "packages.x86_64-linux.hello")
-            .unwrap());
+        assert!(
+            !matcher
+                .matches_pattern("packages.aarch64-linux.*", "packages.x86_64-linux.hello")
+                .unwrap()
+        );
+        assert!(
+            !matcher
+                .matches_pattern("checks.*.*", "packages.x86_64-linux.hello")
+                .unwrap()
+        );
 
         // Test different number of parts
-        assert!(!matcher
-            .matches_pattern("packages.*", "packages.x86_64-linux.hello")
-            .unwrap());
-        assert!(!matcher
-            .matches_pattern("packages.*.*.*", "packages.x86_64-linux.hello")
-            .unwrap());
+        assert!(
+            !matcher
+                .matches_pattern("packages.*", "packages.x86_64-linux.hello")
+                .unwrap()
+        );
+        assert!(
+            !matcher
+                .matches_pattern("packages.*.*.*", "packages.x86_64-linux.hello")
+                .unwrap()
+        );
 
         // Test 2-part patterns
-        assert!(matcher
-            .matches_pattern("devShell.*", "devShell.x86_64-linux")
-            .unwrap());
-        assert!(matcher
-            .matches_pattern("defaultPackage.x86_64-linux", "defaultPackage.x86_64-linux")
-            .unwrap());
+        assert!(
+            matcher
+                .matches_pattern("devShell.*", "devShell.x86_64-linux")
+                .unwrap()
+        );
+        assert!(
+            matcher
+                .matches_pattern("defaultPackage.x86_64-linux", "defaultPackage.x86_64-linux")
+                .unwrap()
+        );
     }
 
     #[test]
@@ -181,14 +201,20 @@ mod tests {
         let applicable = matcher.get_applicable_build_entries(&builds);
 
         assert_eq!(applicable.len(), 2); // main entry + no_branch entry
-        assert!(applicable
-            .iter()
-            .any(|e| e.include.contains(&"packages.*.*".to_string())));
-        assert!(applicable
-            .iter()
-            .any(|e| e.include.contains(&"devShells.*".to_string())));
-        assert!(!applicable
-            .iter()
-            .any(|e| e.include.contains(&"checks.*.*".to_string())));
+        assert!(
+            applicable
+                .iter()
+                .any(|e| e.include.contains(&"packages.*.*".to_string()))
+        );
+        assert!(
+            applicable
+                .iter()
+                .any(|e| e.include.contains(&"devShells.*".to_string()))
+        );
+        assert!(
+            !applicable
+                .iter()
+                .any(|e| e.include.contains(&"checks.*.*".to_string()))
+        );
     }
 }
