@@ -63,16 +63,10 @@
             pkg-config
           ];
 
-          buildInputs =
-            with pkgs;
-            [
-              openssl
-              libgit2
-            ]
-            ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-              pkgs.darwin.apple_sdk.frameworks.Security
-              pkgs.darwin.apple_sdk.frameworks.SystemConfiguration
-            ];
+          buildInputs = with pkgs; [
+            openssl
+            libgit2
+          ];
 
           meta = with pkgs.lib; {
             description = "run the same builds garnix does";
