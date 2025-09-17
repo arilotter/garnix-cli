@@ -124,20 +124,36 @@ impl NixFlake {
 
         let use_nom = nom_available().await;
 
-        let command = if use_nom { "nom" } else { "nix" };
+        let binary = if use_nom { "nom" } else { "nix" };
 
-        let mut args = vec!["build".to_string()];
+        let expanded_attrs = attributes
+            .iter()
+            .map(|attr| {
+                let build_attr = transform_attribute_for_build(attr);
+                format!("{attr} = flake.{build_attr};")
+            })
+            .collect::<Vec<_>>()
+            .join("");
 
-        for attr in attributes {
-            let build_attr = transform_attribute_for_build(attr);
-            args.push(format!("{}#{}", self.flake_path, build_attr));
-        }
+        let expr = format!(
+            "let flake = builtins.getFlake \"{}\"; in {{{}}}",
+            self.flake_path, expanded_attrs
+        );
+
+        let args = vec![
+            "build".to_string(),
+            "--no-link".to_string(),
+            "--expr".to_string(),
+            expr,
+        ];
+
+        let mut command = Command::new(binary);
+        command.args(&args);
 
         if dry_run {
-            println!("dry-run: would execute > {} {}", command, args.join(" "));
+            println!("dry-run: would execute:\n{:?}", command.as_std());
         } else {
-            let mut child = Command::new(command)
-                .args(&args)
+            let mut child = command
                 .stdin(Stdio::null())
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
@@ -148,7 +164,7 @@ impl NixFlake {
             if !status.success() {
                 return Err(GarnixError::NixCommand(format!(
                     "{} build failed with exit code: {:?}",
-                    command,
+                    binary,
                     status.code()
                 )));
             }
